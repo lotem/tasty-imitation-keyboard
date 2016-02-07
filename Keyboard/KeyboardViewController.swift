@@ -864,32 +864,35 @@ class KeyboardViewController: UIInputViewController {
             case .None:
                 return false
             case .Words:
-                let beforeContext = documentProxy.documentContextBeforeInput!
-                let previousCharacter = beforeContext[beforeContext.endIndex.predecessor()]
-                return self.characterIsWhitespace(previousCharacter)
+                if let beforeContext = documentProxy.documentContextBeforeInput {
+                    let previousCharacter = beforeContext[beforeContext.endIndex.predecessor()]
+                    return self.characterIsWhitespace(previousCharacter)
+                }
+                return true
             case .Sentences:
-                let beforeContext = documentProxy.documentContextBeforeInput!
-                let offset = min(3, beforeContext.characters.count)
-                var index = beforeContext.endIndex
+                if let beforeContext = documentProxy.documentContextBeforeInput {
+                    let offset = min(3, beforeContext.characters.count)
+                    var index = beforeContext.endIndex
 
-                for (var i = 0; i < offset; i += 1) {
-                    index = index.predecessor()
-                    let char = beforeContext[index]
+                    for (var i = 0; i < offset; i += 1) {
+                        index = index.predecessor()
+                        let char = beforeContext[index]
 
-                    if characterIsPunctuation(char) {
-                        if i == 0 {
-                            return false //not enough spaces after punctuation
+                        if characterIsPunctuation(char) {
+                            if i == 0 {
+                                return false //not enough spaces after punctuation
+                            }
+                            else {
+                                return true //punctuation with at least one space after it
+                            }
                         }
                         else {
-                            return true //punctuation with at least one space after it
-                        }
-                    }
-                    else {
-                        if !characterIsWhitespace(char) {
-                            return false //hit a foreign character before getting to 3 spaces
-                        }
-                        else if characterIsNewline(char) {
-                            return true //hit start of line
+                            if !characterIsWhitespace(char) {
+                                return false //hit a foreign character before getting to 3 spaces
+                            }
+                            else if characterIsNewline(char) {
+                                return true //hit start of line
+                            }
                         }
                     }
                 }
