@@ -36,7 +36,7 @@ class Keyboard {
     
     func addKey(key: Key, row: Int, page: Int) {
         if self.pages.count <= page {
-            for i in self.pages.count...page {
+            for _ in self.pages.count...page {
                 self.pages.append(Page())
             }
         }
@@ -54,7 +54,7 @@ class Page {
     
     func addKey(key: Key, row: Int) {
         if self.rows.count <= row {
-            for i in self.rows.count...row {
+            for _ in self.rows.count...row {
                 self.rows.append([])
             }
         }
@@ -71,6 +71,7 @@ class Key: Hashable {
         case Backspace
         case ModeChange
         case KeyboardChange
+        case KeyboardHide
         case Period
         case Space
         case Return
@@ -83,6 +84,8 @@ class Key: Hashable {
     var lowercaseKeyCap: String?
     var uppercaseOutput: String?
     var lowercaseOutput: String?
+    var uppercaseLongPressOutput: [String]?
+    var lowercaseLongPressOutput: [String]?
     var toMode: Int? //if the key is a mode button, this indicates which page it links to
     
     var isCharacter: Bool {
@@ -102,17 +105,14 @@ class Key: Hashable {
     var isSpecial: Bool {
         get {
             switch self.type {
-            case .Shift:
-                return true
-            case .Backspace:
-                return true
-            case .ModeChange:
-                return true
-            case .KeyboardChange:
-                return true
-            case .Return:
-                return true
-            case .Settings:
+            case
+            .Shift,
+            .Backspace,
+            .ModeChange,
+            .KeyboardChange,
+            .KeyboardHide,
+            .Return,
+            .Settings:
                 return true
             default:
                 return false
@@ -123,6 +123,18 @@ class Key: Hashable {
     var hasOutput: Bool {
         get {
             return (self.uppercaseOutput != nil) || (self.lowercaseOutput != nil)
+        }
+    }
+    
+    var hasLowercaseLongPress: Bool {
+        get {
+            return self.lowercaseLongPressOutput != nil
+        }
+    }
+    
+    var hasUppercaseLongPress: Bool {
+        get {
+            return self.uppercaseLongPressOutput != nil
         }
     }
     
@@ -150,6 +162,24 @@ class Key: Hashable {
         self.uppercaseOutput = (letter as NSString).uppercaseString
         self.lowercaseKeyCap = self.lowercaseOutput
         self.uppercaseKeyCap = self.uppercaseOutput
+    }
+    
+    func setUppercaseLongPress(letters: [String]) {
+        self.uppercaseLongPressOutput = letters
+    }
+    
+    func setLowercaseLongPress(letters: [String]) {
+        self.lowercaseLongPressOutput = letters
+    }
+    
+    func longPressForCase(uppercase: Bool) -> [String] {
+        if uppercase && self.hasUppercaseLongPress {
+            return self.uppercaseLongPressOutput!
+        } else if !uppercase && self.hasLowercaseLongPress {
+            return self.lowercaseLongPressOutput!
+        } else {
+            return []
+        }
     }
     
     func outputForCase(uppercase: Bool) -> String {
